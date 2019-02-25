@@ -1,0 +1,19 @@
+TO DO 
+
+** IMDB Fetch
+- [] Search Result - https://www.imdb.com/find?ref_=nv_sr_fn&q=black+panther&s=all
+- [] Movie Detail - https://www.imdb.com/title/tt1825683/?ref_=fn_al_tt_1
+    + [] Title 
+    + [] Year
+    + [] Image
+    + [] Review - https://www.imdb.com/title/tt1825683/reviews?ref_=tt_urv
+
+    // Load More : https://www.imdb.com/title/tt1825683/reviews/_ajax?ref_=undefined&paginationKey=hr62oqgk65urrivyqpkcwjsq52mdkput2c5aefy2gyjwxdmtxi35qhabs2m36nlps5mlsyfi5yoty
+
+    // https://www.imdb.com/title/tt1825683/reviews/_ajax?ref_=undefined&paginationKey=dd5j37vypjw6r6yqw4lqae2r3f7pctd72giku7ptl2wamyrmuelnn4xcppugyjrz573umi6htgqqm
+
+** Rotten Tomatoes Fetch
+- [] Write the Rotten Romatoes Fetch - https://www.rottentomatoes.com/napi/search/?query=black%20panther
+- [] Confirm the movie after search
+- [] Display Score
+- [] Display User review
