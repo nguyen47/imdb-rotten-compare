@@ -8,12 +8,11 @@ const searchMovie = async query => {
   const rottenResponse = await fetch(rottenUrl);
   const rottenResult = await rottenResponse.json();
   const rottenPickData = _.pick(rottenResult, ["movies", "tvSeries"]);
-  console.log(rottenPickData);
   return rottenPickData;
 };
 
-const selectMovie = async movieTitle => {
-  const url = `https://www.rottentomatoes.com/m/${movieTitle}`;
+const selectMovie = async (type, movieTitle) => {
+  const url = `https://www.rottentomatoes.com/${type}/${movieTitle}`;
   const response = await fetch(url);
   const result = await response.text();
   const $ = cheerio.load(result);
@@ -42,28 +41,96 @@ const selectMovie = async movieTitle => {
   )
     .text()
     .trim();
-  const rottentomatoes = {
+
+  const director = $(
+    "li.meta-row:nth-child(3) > div:nth-child(2) > a:nth-child(1)"
+  )
+    .text()
+    .trim();
+  const year = $(
+    "li.meta-row:nth-child(5) > div:nth-child(2) > time:nth-child(1)"
+  )
+    .text()
+    .trim()
+    .slice(-4);
+
+  const casts = [];
+
+  $(".castSection .cast-item").each((i, item) => {
+    const $item = $(item);
+    const name = $item
+      .find(".unstyled > span")
+      .text()
+      .trim();
+    casts.push(name);
+  });
+
+  const rottenMovie = {
     title,
-    tomatometerScore,
-    reviewCounted,
-    audienceScore,
-    usersRating
+    year,
+    casts
   };
-  console.log(rottentomatoes);
-  return movie;
+
+  const imdbMovie = await imdbSearch(`${movieTitle}`);
+
+  compareMovie(rottenMovie, imdbMovie);
+  // const rottentomatoes = {
+  //   title,
+  //   director,
+  //   year,
+  //   casts,
+  //   tomatometerScore,
+  //   reviewCounted,
+  //   audienceScore,
+  //   usersRating
+  // };
+  return rottenMovie;
 };
 
 const imdbSearch = async query => {
   const imdbUrl = `https://sg.media-imdb.com/suggests/${query.charAt(
     0
-  )}/${query.split(" ").join("_")}.json`;
-  console.log(imdbUrl);
+  )}/${query}.json`; // query.split(" ").join("_")
   const imdbResponse = await fetch(imdbUrl);
   const imdbResult = await imdbResponse.text();
   const imdbPickData = JSON.parse(
-    imdbResult.slice(0, -1).replace(`imdb$${query.split(" ").join("_")}(`, "")
+    imdbResult.slice(0, -1).replace(`imdb$${query}(`, "")
   );
-  console.log(imdbPickData);
+  // Change Key Name of the Array
+  const movieImdbChangeKeyName = [];
+  for (let index = 0; index < imdbPickData.d.length; index++) {
+    const movie = {
+      id: imdbPickData.d[index].id,
+      title: imdbPickData.d[index].l,
+      casts: imdbPickData.d[index].s,
+      year: imdbPickData.d[index].y
+    };
+    movieImdbChangeKeyName.push(movie);
+  }
+  // Remove the object with has contain at least one undefined
+  _.remove(movieImdbChangeKeyName, n => {
+    return (
+      n.title === undefined || n.casts === undefined || n.year === undefined
+    );
+  });
+
+  // Convert string casts to array
+  const imdbMovie = [];
+  for (let index = 0; index < movieImdbChangeKeyName.length; index++) {
+    const movie = {
+      id: movieImdbChangeKeyName[index].id,
+      title: movieImdbChangeKeyName[index].title,
+      casts: movieImdbChangeKeyName[index].casts.replace(/\s/g, "").split(","),
+      year: movieImdbChangeKeyName[index].year.toString()
+    };
+    imdbMovie.push(movie);
+  }
+
+  return imdbMovie;
+};
+
+const compareMovie = (rottenMovie, imdbMovie) => {
+  console.log(rottenMovie, imdbMovie);
 };
 
 module.exports.searchMovie = searchMovie;
