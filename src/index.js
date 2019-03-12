@@ -2,6 +2,7 @@ const express = require("express");
 const cheerio = require("cheerio");
 const fetch = require("node-fetch");
 const _ = require("lodash");
+const isSubset = require("is-subset");
 
 const searchMovie = async query => {
   const rottenUrl = `https://www.rottentomatoes.com/napi/search/?query=${query}`;
@@ -73,17 +74,18 @@ const selectMovie = async (type, movieTitle) => {
 
   const imdbMovie = await imdbSearch(`${movieTitle}`);
 
-  compareMovie(rottenMovie, imdbMovie);
-  // const rottentomatoes = {
-  //   title,
-  //   director,
-  //   year,
-  //   casts,
-  //   tomatometerScore,
-  //   reviewCounted,
-  //   audienceScore,
-  //   usersRating
-  // };
+  console.log(compareMovie(imdbMovie, rottenMovie));
+
+  const rottentomatoes = {
+    title,
+    director,
+    year,
+    casts,
+    tomatometerScore,
+    reviewCounted,
+    audienceScore,
+    usersRating
+  };
   return rottenMovie;
 };
 
@@ -102,7 +104,7 @@ const imdbSearch = async query => {
     const movie = {
       id: imdbPickData.d[index].id,
       title: imdbPickData.d[index].l,
-      casts: imdbPickData.d[index].s,
+      casts: imdbPickData.d[index].s.replace(", ", ","),
       year: imdbPickData.d[index].y
     };
     movieImdbChangeKeyName.push(movie);
@@ -120,7 +122,7 @@ const imdbSearch = async query => {
     const movie = {
       id: movieImdbChangeKeyName[index].id,
       title: movieImdbChangeKeyName[index].title,
-      casts: movieImdbChangeKeyName[index].casts.replace(/\s/g, "").split(","),
+      casts: movieImdbChangeKeyName[index].casts.split(","),
       year: movieImdbChangeKeyName[index].year.toString()
     };
     imdbMovie.push(movie);
@@ -130,7 +132,20 @@ const imdbSearch = async query => {
 };
 
 const compareMovie = (rottenMovie, imdbMovie) => {
-  console.log(rottenMovie, imdbMovie);
+  for (let index = 0; index < imdbMovie.length; index++) {
+    const imdbMovieSliceId = _.pick(imdbMovie[index], [
+      "title",
+      "casts",
+      "year"
+    ]);
+    console.log(imdbMovieSliceId);
+    isSubset(rottenMovie, imdbMovieSliceId);
+    if (compoareResult) {
+      console.log(imdbMovie);
+      return imdbMovie;
+    }
+    return;
+  }
 };
 
 module.exports.searchMovie = searchMovie;
