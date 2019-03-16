@@ -74,19 +74,27 @@ const selectMovie = async (type, movieTitle) => {
 
   const imdbMovie = await imdbSearch(`${movieTitle}`);
 
-  console.log(compareMovie(imdbMovie, rottenMovie));
+  const resultCompare = compareMovie(rottenMovie, imdbMovie);
 
-  const rottentomatoes = {
-    title,
-    director,
-    year,
-    casts,
+  const imdb = await selectImdbMovie(resultCompare.id);
+
+  const rottenTomatoes = {
     tomatometerScore,
     reviewCounted,
     audienceScore,
     usersRating
   };
-  return rottenMovie;
+
+  const movie = {
+    title,
+    director,
+    year,
+    casts,
+    rottenTomatoes,
+    imdb
+  };
+
+  return movie;
 };
 
 const imdbSearch = async query => {
@@ -138,16 +146,61 @@ const compareMovie = (rottenMovie, imdbMovie) => {
       "casts",
       "year"
     ]);
-    console.log(imdbMovieSliceId);
-    isSubset(rottenMovie, imdbMovieSliceId);
-    if (compoareResult) {
-      console.log(imdbMovie);
-      return imdbMovie;
+    if (isSubset(rottenMovie, imdbMovieSliceId)) {
+      return imdbMovie[index];
     }
-    return;
   }
+  return;
+};
+
+const selectImdbMovie = async imdbId => {
+  const url = `https://www.imdb.com/title/${imdbId}`;
+  const response = await fetch(url);
+  const result = await response.text();
+  const $ = cheerio.load(result);
+  const imdbScore = $("div.imdbRating > div.ratingValue > strong > span")
+    .text()
+    .trim();
+  const imdbReview = $("div.imdbRating > a > span.small")
+    .text()
+    .trim()
+    .replace(",", "");
+  const metacriticScore = $(
+    "div.metacriticScore.score_mixed.titleReviewBarSubItem span"
+  )
+    .text()
+    .trim();
+  const metacriticUsers = $(
+    "div.titleReviewBarItem:nth-child(3) > div:nth-child(2) > span:nth-child(1) > a:nth-child(1)"
+  )
+    .text()
+    .trim()
+    .replace(",", "")
+    .replace(" user", "");
+  const metacriticCritic = $(
+    "div.titleReviewBarItem:nth-child(3) > div:nth-child(2) > span:nth-child(1) > a:nth-child(3)"
+  )
+    .text()
+    .trim()
+    .replace(" critic", "");
+
+  const imdb = {
+    imdb: {
+      imdbScore,
+      imdbReview
+    },
+    metacritic: {
+      metacriticScore,
+      metacriticUsers,
+      metacriticCritic
+    }
+  };
+
+  return imdb;
 };
 
 module.exports.searchMovie = searchMovie;
 module.exports.selectMovie = selectMovie;
 module.exports.imdbSearch = imdbSearch;
+module.exports.compareMovie = compareMovie;
+module.exports.selectImdbMovie = selectImdbMovie;
