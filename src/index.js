@@ -68,33 +68,41 @@ const selectMovie = async (type, movieTitle) => {
 
   const rottenMovie = {
     title,
-    year,
-    casts
+    year
   };
+  console.log("ROTTEN MOVIE" + JSON.stringify(rottenMovie, "null", 4));
 
+  console.log("Call imdb search");
   const imdbMovie = await imdbSearch(`${movieTitle}`);
 
+  console.log("Compare Movie");
   const resultCompare = compareMovie(rottenMovie, imdbMovie);
 
-  const imdb = await selectImdbMovie(resultCompare.id);
+  if (resultCompare) {
+    console.log("SELECT IMDB MOVIE");
+    const imdb = await selectImdbMovie(resultCompare.id);
 
-  const rottenTomatoes = {
-    tomatometerScore,
-    reviewCounted,
-    audienceScore,
-    usersRating
-  };
+    const rottenTomatoes = {
+      tomatometerScore,
+      reviewCounted,
+      audienceScore,
+      usersRating
+    };
 
-  const movie = {
-    title,
-    director,
-    year,
-    casts,
-    rottenTomatoes,
-    imdb
-  };
+    const movie = {
+      title,
+      director,
+      year,
+      casts,
+      rottenTomatoes,
+      imdb
+    };
+    console.log("Final movie " + movie);
 
-  return movie;
+    return movie;
+  }
+  console.log("NHAY RA DAY");
+  return;
 };
 
 const imdbSearch = async query => {
@@ -112,16 +120,13 @@ const imdbSearch = async query => {
     const movie = {
       id: imdbPickData.d[index].id,
       title: imdbPickData.d[index].l,
-      casts: imdbPickData.d[index].s.replace(", ", ","),
       year: imdbPickData.d[index].y
     };
     movieImdbChangeKeyName.push(movie);
   }
   // Remove the object with has contain at least one undefined
   _.remove(movieImdbChangeKeyName, n => {
-    return (
-      n.title === undefined || n.casts === undefined || n.year === undefined
-    );
+    return n.title === undefined || n.year === undefined;
   });
 
   // Convert string casts to array
@@ -130,11 +135,12 @@ const imdbSearch = async query => {
     const movie = {
       id: movieImdbChangeKeyName[index].id,
       title: movieImdbChangeKeyName[index].title,
-      casts: movieImdbChangeKeyName[index].casts.split(","),
       year: movieImdbChangeKeyName[index].year.toString()
     };
     imdbMovie.push(movie);
   }
+
+  console.log("Imdb Result: " + JSON.stringify(imdbMovie, null, 4));
 
   return imdbMovie;
 };
@@ -147,9 +153,11 @@ const compareMovie = (rottenMovie, imdbMovie) => {
       "year"
     ]);
     if (isSubset(rottenMovie, imdbMovieSliceId)) {
+      console.log(JSON.stringify(imdbMovie[index], null, 4));
       return imdbMovie[index];
     }
   }
+  console.log("FAIL COMPARE MOVIE");
   return;
 };
 
@@ -165,9 +173,7 @@ const selectImdbMovie = async imdbId => {
     .text()
     .trim()
     .replace(",", "");
-  const metacriticScore = $(
-    "div.metacriticScore.score_mixed.titleReviewBarSubItem span"
-  )
+  const metacriticScore = $("div.metacriticScore > span")
     .text()
     .trim();
   const metacriticUsers = $(
@@ -196,6 +202,7 @@ const selectImdbMovie = async imdbId => {
     }
   };
 
+  console.log("Result select imdb movie: " + JSON.stringify(imdb, "null", 4));
   return imdb;
 };
 

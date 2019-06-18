@@ -8,3 +8,23 @@ search movie = api of imdb -> {
 
 compare 2 movie -> get id of imdb film -> fetch movie detail of imdb -> get Score
 
+movie = {
+    title,
+      director,
+      year,
+      casts,
+      score: {
+          imdb: {
+
+          }, 
+          metascore,
+          rottentomatoes: {
+              
+          }
+      }
+}
+
+// 
+
+1/ Search movie using the Imdb API -> Search Result.
+
